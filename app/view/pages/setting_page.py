@@ -419,8 +419,6 @@ class SettingPage(FastScrollArea):
         self.regenerateTokenButton.clicked.connect(self._onRegenerateTokenClicked)
         self.chromiumInstallCard.clicked.connect(self._onChromiumInstallClicked)
         self.exportExtensionButton.clicked.connect(self._onExportExtensionClicked)
-        if sys.platform != "darwin":
-            self.urlSchemeCard.checkedChanged.connect(self._onUrlSchemeChanged)
         self.autoRunCard.checkedChanged.connect(self._onRunAtLoginChanged)
         self.commandLineToolCard.clicked.connect(self._onCommandLineToolClicked)
         self.packInfoCard.clicked.connect(self._onPackInfoClicked)
@@ -502,13 +500,6 @@ class SettingPage(FastScrollArea):
             if f.open(QIODevice.OpenModeFlag.WriteOnly):
                 f.write(loadCrx())
                 f.close()
-
-    def _onUrlSchemeChanged(self, enabled: bool) -> None:
-        from app.platform.file_association import registerUrlScheme, unregisterUrlScheme
-        if enabled:
-            registerUrlScheme()
-        else:
-            unregisterUrlScheme()
 
     def _onRunAtLoginChanged(self, enabled: bool) -> None:
         from app.platform.run_at_login import setRunAtLogin

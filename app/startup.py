@@ -109,6 +109,20 @@ def loadPacks(featureService: FeatureService, coroutineRunner: CoroutineRunner, 
     PackConfig.load()
 
 
+def saveAssociations(featureService: FeatureService) -> None:
+    # 源码运行时可执行文件是 Python 解释器，写进系统只会留下打不开的入口
+    if "__compiled__" not in globals():
+        return
+    from app.config.cfg import cfg
+    from app.platform import file_association
+    from app.platform.url_scheme import URL_SCHEME
+
+    schemes = [s.scheme for s in featureService.associatedSchemes()]
+    if cfg.isUrlSchemeRegistered.value:
+        schemes.append(URL_SCHEME)
+    file_association.save(featureService.associatedFileTypes(), schemes)
+
+
 def checkUpdateAtStartup(updateService: UpdateService) -> None:
     from app.config.cfg import cfg
     if not cfg.shouldCheckUpdateAtStartup.value:

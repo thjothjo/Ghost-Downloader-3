@@ -10,7 +10,6 @@ from loguru import logger
 from app.config.cfg import cfg
 from app.config.paths import FEATURES_DIR
 from app.models.task import TaskError, TaskOptions, toHost, toScheme
-from app.platform import file_association
 from app.loader import loadPacks
 
 if TYPE_CHECKING:
@@ -88,12 +87,6 @@ class FeatureService:
         if pack.config:
             pack.config.createRuntimeCard = self._createRuntimeCard
             pack.config.submit = self._coroutineRunner.submit
-            fileToggle = pack.config.fileAssociationToggle()
-            if fileToggle:
-                fileToggle.connect(self._registerAssociations)
-            schemeToggle = pack.config.uriSchemeAssociationToggle()
-            if schemeToggle:
-                schemeToggle.connect(self._registerAssociations)
 
     async def parse(self, options: TaskOptions) -> Task:
         host = toHost(options.url)
@@ -229,22 +222,21 @@ class FeatureService:
             if pack.config and pack.config.associateFileTypes is not None:
                 cfg.set(pack.config.associateFileTypes, isEnabled)
 
-    def _registerAssociations(self) -> None:
-        types = []
-        enabledSchemes = []
-        disabledSchemes = []
-        for pack in self._packs:
-            if not pack.config or pack.config.isFileAssociationEnabled():
-                types.extend(pack.fileTypes())
-            if not pack.config or pack.config.isUriSchemeAssociationEnabled():
-                enabledSchemes.extend(pack.uriSchemes())
-            elif pack.uriSchemes():
-                disabledSchemes.extend(pack.uriSchemes())
-        file_association.register(types)
-        for s in disabledSchemes:
-            file_association.unregisterUrlScheme(s.scheme)
-        for s in enabledSchemes:
-            file_association.registerUrlScheme(s.scheme)
+    def associatedFileTypes(self) -> list[FileType]:
+        return [
+            fileType
+            for pack in self._packs
+            if not pack.config or pack.config.isFileAssociationEnabled()
+            for fileType in pack.fileTypes()
+        ]
+
+    def associatedSchemes(self) -> list[UriScheme]:
+        return [
+            scheme
+            for pack in self._packs
+            if not pack.config or pack.config.isUriSchemeAssociationEnabled()
+            for scheme in pack.uriSchemes()
+        ]
 
     def deactivate(self) -> None:
         event = Event()

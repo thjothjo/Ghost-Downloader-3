@@ -24,7 +24,6 @@ from app.config.cfg import cfg, LANGUAGE_TEXTS
 from app.i18n import toLocalizedError
 from app.models.task import toTaskError
 from app.platform.desktop import openChromiumUrl, revealInFolder
-from app.platform.file_association import registerUrlScheme, unregisterUrlScheme
 from app.platform.run_at_login import setRunAtLogin
 from app.services.port_listener import ListenStatus
 from app.config.constants import (
@@ -730,10 +729,6 @@ class AdvancedOptionsPage(QWidget):
                     cfg.set(config.associateUriSchemes, self.uriSchemeCard.isChecked())
 
         if self.urlSchemeCard is not None:
-            if self.urlSchemeCard.isChecked():
-                registerUrlScheme()
-            else:
-                unregisterUrlScheme()
             cfg.set(cfg.isUrlSchemeRegistered, self.urlSchemeCard.isChecked())
 
         cfg.set(cfg.isAria2RpcEnabled, self.aria2Card.isChecked())
